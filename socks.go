@@ -38,13 +38,14 @@ A complete example using this package:
 		return
 	}
 */
-package socks // import "h12.me/socks"
+package socks
 
 import (
 	"errors"
 	"fmt"
 	"net"
 	"strconv"
+	"time"
 )
 
 // Constants to choose which version of SOCKS protocol to use.
@@ -57,22 +58,22 @@ const (
 // DialSocksProxy returns the dial function to be used in http.Transport object.
 // Argument socksType should be one of SOCKS4, SOCKS4A and SOCKS5.
 // Argument proxy should be in this format "127.0.0.1:1080".
-func DialSocksProxy(socksType int, proxy string) func(string, string) (net.Conn, error) {
+func DialSocksProxy(socksType int, proxy string, timeout time.Duration) func(string, string) (net.Conn, error) {
 	if socksType == SOCKS5 {
 		return func(_, targetAddr string) (conn net.Conn, err error) {
-			return dialSocks5(proxy, targetAddr)
+			return dialSocks5(proxy, targetAddr, timeout)
 		}
 	}
 
 	// SOCKS4, SOCKS4A
 	return func(_, targetAddr string) (conn net.Conn, err error) {
-		return dialSocks4(socksType, proxy, targetAddr)
+		return dialSocks4(socksType, proxy, targetAddr, timeout)
 	}
 }
 
-func dialSocks5(proxy, targetAddr string) (conn net.Conn, err error) {
+func dialSocks5(proxy, targetAddr string, timeout time.Duration) (conn net.Conn, err error) {
 	// dial TCP
-	conn, err = net.Dial("tcp", proxy)
+	conn, err = net.DialTimeout("tcp", proxy, timeout)
 	if err != nil {
 		return
 	}
@@ -121,9 +122,9 @@ func dialSocks5(proxy, targetAddr string) (conn net.Conn, err error) {
 	return
 }
 
-func dialSocks4(socksType int, proxy, targetAddr string) (conn net.Conn, err error) {
+func dialSocks4(socksType int, proxy, targetAddr string, timeout time.Duration) (conn net.Conn, err error) {
 	// dial TCP
-	conn, err = net.Dial("tcp", proxy)
+	conn, err = net.DialTimeout("tcp", proxy, timeout)
 	if err != nil {
 		return
 	}
