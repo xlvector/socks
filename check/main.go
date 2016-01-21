@@ -15,7 +15,7 @@ import (
 
 func socksClient(ip string) *http.Client {
 	dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, ip, time.Second*10)
-	tr := &http.Transport{Dial: dialSocksProxy}
+	tr := &http.Transport{Dial: dialSocksProxy, ResponseHeaderTimeout: time.Second * 10}
 	return &http.Client{Transport: tr}
 }
 
@@ -33,6 +33,7 @@ func httpProxyClient(ip string) *http.Client {
 			return c, nil
 		},
 		Proxy: http.ProxyURL(proxy),
+		ResponseHeaderTimeout: time.Second * 10,
 	}
 
 	client := &http.Client{Transport: transport}
