@@ -81,17 +81,17 @@ func main() {
 
 	for i := 0; i < 100; i++ {
 		go func() {
-			line := <-tasks
-			tks := strings.Split(strings.TrimSpace(line), "\t")
-			log.Println(tks)
+			for line := range tasks {
+				tks := strings.Split(strings.TrimSpace(line), "\t")
+				log.Println(tks)
 
-			if *target == "taobao" && check(tks[0]+":"+tks[1], tks[2], "https://www.taobao.com/", "<title>淘宝网 - 淘！我喜欢</title>") {
-				fmt.Println(">>", tks[0], tks[1], "https://www.taobao.com/")
+				if *target == "taobao" && check(tks[0]+":"+tks[1], tks[2], "https://www.taobao.com/", "<title>淘宝网 - 淘！我喜欢</title>") {
+					fmt.Println(">>", tks[0], tks[1], "https://www.taobao.com/")
+				}
+				if *target == "baidu" && check(tks[0]+":"+tks[1], tks[2], "http://www.baidu.com/", "<title>百度一下，你就知道</title>") {
+					fmt.Println(">>", tks[0], tks[1], "http://www.baidu.com/")
+				}
 			}
-			if *target == "baidu" && check(tks[0]+":"+tks[1], tks[2], "http://www.baidu.com/", "<title>百度一下，你就知道</title>") {
-				fmt.Println(">>", tks[0], tks[1], "http://www.baidu.com/")
-			}
-
 		}()
 	}
 
