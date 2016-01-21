@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -69,10 +70,26 @@ func tryConnect(ip string, tp int) bool {
 	return true
 }
 
+func tryHttpProxy(ip string) bool {
+	proxy := func(_ *http.Request) (*url.URL, error) {
+		return url.Parse("http://" + ip)
+	}
+	transport := &http.Transport{Proxy: proxy}
+
+	client := &http.Client{Transport: transport}
+	link := "http://121.201.28.254:8999/?ip=" + ip + "&type=http"
+	_, err := client.Get(link)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func main() {
 	prefix := flag.String("p", "", "prefix")
 	n := flag.Int("n", 1000, "num")
 	port := flag.String("t", "1080", "port")
+	tag := flag.String("tag", "socks5", "tag")
 	flag.Parse()
 
 	ips := make(chan string, 100000)
@@ -84,8 +101,12 @@ func main() {
 	for k := 0; k < *n; k++ {
 		go func() {
 			for ip := range ips {
-				if tryConnect(ip+":"+*port, socks.SOCKS5) {
+				if *tag == "socks5" && tryConnect(ip+":"+*port, socks.SOCKS5) {
 					log.Println("okkkkkkkkkkk 5")
+				}
+
+				if *tag == "http" && tryHttpProxy(ip+":"+*port) {
+					log.Println("okkkkkkkkkkk http")
 				}
 			}
 		}()
