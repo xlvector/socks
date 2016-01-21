@@ -79,11 +79,10 @@ func main() {
 		tasks <- line
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 2000; i++ {
 		go func() {
 			for line := range tasks {
 				tks := strings.Split(strings.TrimSpace(line), "\t")
-				log.Println(tks)
 
 				if *target == "taobao" && check(tks[0]+":"+tks[1], tks[2], "https://www.taobao.com/", "<title>淘宝网 - 淘！我喜欢</title>") {
 					fmt.Println(">>", tks[0], tks[1], "https://www.taobao.com/")
