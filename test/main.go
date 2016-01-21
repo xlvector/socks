@@ -5,6 +5,7 @@ import (
 	"github.com/xlvector/socks"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -71,10 +72,20 @@ func tryConnect(ip string, tp int) bool {
 }
 
 func tryHttpProxy(ip string) bool {
-	proxy := func(_ *http.Request) (*url.URL, error) {
-		return url.Parse("http://" + ip)
+	proxy, _ := url.Parse("http://" + ip)
+	transport := &http.Transport{
+		Dial: func(netw, addr string) (net.Conn, error) {
+			timeout := time.Duration(5) * time.Second
+			deadline := time.Now().Add(timeout)
+			c, err := net.DialTimeout(netw, addr, timeout)
+			if err != nil {
+				return nil, err
+			}
+			c.SetDeadline(deadline)
+			return c, nil
+		},
+		Proxy: http.ProxyURL(proxy),
 	}
-	transport := &http.Transport{Proxy: proxy}
 
 	client := &http.Client{Transport: transport}
 	link := "http://121.201.28.254:8999/?ip=" + ip + "&type=http"
