@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"github.com/xlvector/socks"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -40,66 +38,36 @@ func httpProxyClient(ip string) *http.Client {
 	return client
 }
 
-func check(ip, tp, target, buf string) bool {
+func check(ip, tp, target string) []byte {
 	var c *http.Client
 	if tp == "socks5" {
 		c = socksClient(ip)
 	} else if tp == "http" {
 		c = httpProxyClient(ip)
 	} else {
-		return false
+		return nil
 	}
 
 	resp, err := c.Get(target)
 	if err != nil || resp == nil || resp.Body == nil {
-		return false
+		return nil
 	}
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return false
+		return nil
 	}
-	//log.Println(string(b))
-	return strings.Contains(string(b), buf)
+	return b
 }
 
 func main() {
-	fn := flag.String("f", "", "file name")
-	target := flag.String("t", "baidu", "target")
+	proxy := flag.String("p", "", "proxy")
+	tp := flag.String("a", "", "type")
+	target := flag.String("t", "", "target")
 	flag.Parse()
 
-	b, err := ioutil.ReadFile(*fn)
-	if err != nil {
-		log.Fatalln(err)
+	b := check(*proxy, *tp, *target)
+	if b != nil {
+		fmt.Println(string(b))
 	}
-
-	lines := strings.Split(string(b), "\n")
-	tasks := make(chan string, 100000)
-	for _, line := range lines {
-		tasks <- line
-	}
-
-	for i := 0; i < 2000; i++ {
-		go func() {
-			for line := range tasks {
-				tks := strings.Split(strings.TrimSpace(line), "\t")
-
-				if *target == "taobao" && check(tks[0]+":"+tks[1], tks[2], "https://www.taobao.com/", "<title>淘宝网 - 淘！我喜欢</title>") {
-					fmt.Println(">>", tks[0], tks[1], "https://www.taobao.com/")
-				}
-				if *target == "baidu" && check(tks[0]+":"+tks[1], tks[2], "http://www.baidu.com/", "<title>百度一下，你就知道</title>") {
-					fmt.Println(">>", tks[0], tks[1], "http://www.baidu.com/")
-				}
-			}
-		}()
-	}
-
-	tc := time.NewTicker(time.Second * 10)
-	for t := range tc.C {
-		if len(tasks) == 0 {
-			break
-		}
-		log.Println(t, len(tasks))
-	}
-	time.Sleep(120)
 }
