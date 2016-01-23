@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/xlvector/socks"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
@@ -12,6 +13,17 @@ import (
 	"strings"
 	"time"
 )
+
+func genIpsFromFile(fn string, ips chan string) {
+	b, err := ioutil.ReadFile(fn)
+	if err != nil {
+		log.Println(err)
+	}
+	lines := strings.Split(string(b), "\n")
+	for _, line := range lines {
+		ips <- strings.TrimSpace(line)
+	}
+}
 
 func genIps(prefix string, ips chan string) {
 	tks := strings.Split(prefix, ".")
@@ -98,26 +110,41 @@ func tryHttpProxy(ip string) bool {
 
 func main() {
 	prefix := flag.String("p", "", "prefix")
+	fn := flag.String("f", "", "file name")
 	n := flag.Int("n", 1000, "num")
-	port := flag.String("t", "1080", "port")
+	port := flag.String("t", "", "port")
 	tag := flag.String("tag", "socks5", "tag")
 	flag.Parse()
 
 	ips := make(chan string, 100000)
 
-	go func() {
-		genIps(*prefix, ips)
-	}()
+	if len(*prefix) > 0 {
+		go genIps(*prefix, ips)
+	}
+
+	if len(*fn) > 0 {
+		go genIpsFromFile(*fn, ips)
+	}
 
 	for k := 0; k < *n; k++ {
 		go func() {
 			for ip := range ips {
-				if *tag == "socks5" && tryConnect(ip+":"+*port, socks.SOCKS5) {
-					log.Println("okkkkkkkkkkk 5")
-				}
+				if len(*port) > 0 {
+					if *tag == "socks5" && tryConnect(ip+":"+*port, socks.SOCKS5) {
+						log.Println("okkkkkkkkkkk 5")
+					}
 
-				if *tag == "http" && tryHttpProxy(ip+":"+*port) {
-					log.Println("okkkkkkkkkkk http")
+					if *tag == "http" && tryHttpProxy(ip+":"+*port) {
+						log.Println("okkkkkkkkkkk http")
+					}
+				} else {
+					if *tag == "socks5" && tryConnect(ip, socks.SOCKS5) {
+						log.Println("okkkkkkkkkkk 5")
+					}
+
+					if *tag == "http" && tryHttpProxy(ip) {
+						log.Println("okkkkkkkkkkk http")
+					}
 				}
 			}
 		}()
