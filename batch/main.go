@@ -71,7 +71,7 @@ func main() {
 		go func() {
 			for link := range links {
 				p := <-proxies
-				kv = strings.Split(p, "\t")
+				kv := strings.Split(p, "\t")
 				b := download(kv[0]+":"+kv[1], link)
 				if b != nil {
 					ioutil.WriteFile(*folder+"/"+name(link), b, 0655)
