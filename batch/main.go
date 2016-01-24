@@ -76,7 +76,11 @@ func main() {
 				b := download(kv[0]+":"+kv[1], link)
 				if b != nil {
 					log.Println("success download", link, kv[0]+":"+kv[1])
-					ioutil.WriteFile(*folder+"/"+name(link), b, 0655)
+					log.Println("save to", *folder+"/"+name(link))
+					err := ioutil.WriteFile(*folder+"/"+name(link), b, 0655)
+					if err != nil {
+						log.Fatalln(err)
+					}
 					proxies <- p
 				} else {
 					log.Println("fail download", link, kv[0]+":"+kv[1])
