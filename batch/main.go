@@ -75,12 +75,13 @@ func main() {
 				kv := strings.Split(p, "\t")
 				b := download(kv[0]+":"+kv[1], link)
 				if b != nil {
-					log.Println("success download", link, p)
+					log.Println("success download", link, kv[0]+":"+kv[1])
 					ioutil.WriteFile(*folder+"/"+name(link), b, 0655)
 					proxies <- p
 				} else {
-					log.Println("fail download", link, p)
+					log.Println("fail download", link, kv[0]+":"+kv[1])
 				}
+				log.Print(len(proxies), len(links))
 			}
 		}()
 	}
