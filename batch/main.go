@@ -73,6 +73,9 @@ func main() {
 			for link := range links {
 				p := <-proxies
 				kv := strings.Split(p, "\t")
+				if len(kv) != 2 {
+					continue
+				}
 				b := download(kv[0]+":"+kv[1], link)
 				if b != nil {
 					log.Println("success download", link, kv[0]+":"+kv[1])
