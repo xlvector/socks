@@ -36,6 +36,7 @@ func loadLines(fn string, c chan string) {
 }
 
 func download(ip, link string) []byte {
+	log.Println("begin download", link, ip)
 	c := socksClient(ip)
 	resp, err := c.Get(link)
 	if err != nil || resp == nil || resp.Body == nil {
@@ -74,8 +75,11 @@ func main() {
 				kv := strings.Split(p, "\t")
 				b := download(kv[0]+":"+kv[1], link)
 				if b != nil {
+					log.Println("success download", link, p)
 					ioutil.WriteFile(*folder+"/"+name(link), b, 0655)
 					proxies <- p
+				} else {
+					log.Println("fail download", link, p)
 				}
 			}
 		}()
