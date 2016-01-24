@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"github.com/xlvector/socks"
 	"io/ioutil"
@@ -13,7 +14,13 @@ import (
 func socksClient(ip string) *http.Client {
 	dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, ip, time.Second*10)
 	tr := &http.Transport{Dial: dialSocksProxy, ResponseHeaderTimeout: time.Second * 10}
-	return &http.Client{Transport: tr}
+	return &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			log.Println("redirect to:%s", req.URL.String())
+			return errors.New("does not allow redirect")
+		},
+	}
 }
 
 func loadLines(fn string, c chan string) {
