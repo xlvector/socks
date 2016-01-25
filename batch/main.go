@@ -71,7 +71,8 @@ func NewBlock() *Block {
 
 func (p *Block) block(ip string) {
 	tks := strings.Split(ip, ".")
-	seg := strings.Join(tks[0:3], ".")
+	seg := strings.Join(tks[0:2], ".")
+	log.Println("block seg", seg)
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	p.ipsegs[seg] = byte(1)
@@ -79,7 +80,7 @@ func (p *Block) block(ip string) {
 
 func (p *Block) isBlock(ip string) bool {
 	tks := strings.Split(ip, ".")
-	seg := strings.Join(tks[0:3], ".")
+	seg := strings.Join(tks[0:2], ".")
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 	_, ok := p.ipsegs[seg]
