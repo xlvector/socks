@@ -84,7 +84,6 @@ func main() {
 					if err != nil {
 						log.Fatalln(err)
 					}
-					proxies <- p
 				} else {
 					log.Println("fail download", link, kv[0]+":"+kv[1])
 				}
