@@ -6,11 +6,28 @@ import (
 	"github.com/xlvector/socks"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 )
+
+type Proxy struct {
+	ip   string
+	port string
+	tag  string
+}
+
+func NewProxy(buf string) *Proxy {
+	tks := strings.Split(buf, "\t")
+	return &Proxy{
+		ip:   tks[0],
+		port: tks[1],
+		tag:  tks[2],
+	}
+}
 
 func socksClient(ip string, block *Block) *http.Client {
 	dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, ip, time.Second*10)
@@ -23,6 +40,43 @@ func socksClient(ip string, block *Block) *http.Client {
 			return errors.New("does not allow redirect")
 		},
 	}
+}
+
+func httpProxyClient(ip string, block *Block) *http.Client {
+	proxy, _ := url.Parse("http://" + ip)
+	transport := &http.Transport{
+		Dial: func(netw, addr string) (net.Conn, error) {
+			timeout := time.Duration(10) * time.Second
+			deadline := time.Now().Add(timeout)
+			c, err := net.DialTimeout(netw, addr, timeout)
+			if err != nil {
+				return nil, err
+			}
+			c.SetDeadline(deadline)
+			return c, nil
+		},
+		Proxy: http.ProxyURL(proxy),
+		ResponseHeaderTimeout: time.Second * 10,
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			log.Println("redirect to:", req.URL.String(), ip)
+			block.block(ip)
+			return errors.New("does not allow redirect")
+		},
+	}
+	return client
+}
+
+func getClient(p *Proxy, block *Block) *http.Client {
+	if p.tag == "socks5" {
+		return socksClient(p.ip+":"+p.port, block)
+	} else if p.tag == "http" {
+		return httpProxyClient(p.ip+":"+p.port, block)
+	}
+	return nil
 }
 
 func loadLines(fn string, c chan string) {
@@ -39,7 +93,8 @@ func loadLines(fn string, c chan string) {
 
 func download(ip, link string, block *Block) []byte {
 	log.Println("begin download", link, ip)
-	c := socksClient(ip, block)
+	p := NewProxy(ip)
+	c := getClient(p, block)
 	resp, err := c.Get(link)
 	if err != nil || resp == nil || resp.Body == nil {
 		return nil
@@ -116,20 +171,17 @@ func main() {
 						log.Println(p, "is blocked")
 						continue
 					}
-					kv := strings.Split(p, "\t")
-					if len(kv) != 2 {
-						continue
-					}
-					b := download(kv[0]+":"+kv[1], link, block)
+
+					b := download(p, link, block)
 					if b != nil {
-						log.Println("success download", link, kv[0]+":"+kv[1])
+						log.Println("success download", link, p)
 						log.Println("save to", *folder+"/"+name(link))
 						err := ioutil.WriteFile(*folder+"/"+name(link), b, 0655)
 						if err != nil {
 							log.Fatalln(err)
 						}
 					} else {
-						log.Println("fail download", link, kv[0]+":"+kv[1])
+						log.Println("fail download", link, p)
 					}
 					log.Print(len(proxies), len(links))
 					break
