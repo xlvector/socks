@@ -201,6 +201,9 @@ func main() {
 		if len(proxies) == 0 || len(links) == 0 {
 			break
 		}
+		if *r == 1 && len(proxies) < 100 {
+			break
+		}
 		log.Println(t, len(proxies), len(links))
 	}
 }
