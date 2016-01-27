@@ -185,7 +185,7 @@ func main() {
 							log.Fatalln(err)
 						}
 					} else {
-						log.Println("fail download", link, p)
+						log.Println("fail download", link, p, status)
 					}
 					log.Println(len(proxies), len(links))
 					break
