@@ -91,20 +91,20 @@ func loadLines(fn string, c chan string) {
 	}
 }
 
-func download(ip, link string, block *Block) []byte {
+func download(ip, link string, block *Block) ([]byte, int) {
 	log.Println("begin download", link, ip)
 	p := NewProxy(ip)
 	c := getClient(p, block)
 	resp, err := c.Get(link)
-	if err != nil || resp == nil || resp.Body == nil || resp.StatusCode != http.StatusOK {
-		return nil
+	if err != nil || resp == nil || resp.Body == nil {
+		return nil, 0
 	}
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil
+		return nil, 0
 	}
-	return b
+	return b, resp.StatusCode
 }
 
 func name(link string) string {
@@ -173,8 +173,11 @@ func main() {
 						continue
 					}
 
-					b := download(p, link, block)
-					if b != nil {
+					b, status := download(p, link, block)
+					if status > 0 {
+						proxies <- p
+					}
+					if b != nil && status == http.StatusOK {
 						log.Println("success download", link, p)
 						log.Println("save to", *folder+"/"+name(link))
 						err := ioutil.WriteFile(*folder+"/"+name(link), b, 0655)
@@ -185,7 +188,6 @@ func main() {
 						log.Println("fail download", link, p)
 					}
 					log.Println(len(proxies), len(links))
-					proxies <- p
 					break
 				}
 			}
