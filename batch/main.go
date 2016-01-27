@@ -153,6 +153,7 @@ func main() {
 	ls := flag.String("l", "", "links")
 	folder := flag.String("d", "./", "folder")
 	n := flag.Int("n", 10, "n")
+	r := flag.Int("r", 0, "reuse ip")
 	flag.Parse()
 
 	proxies := make(chan string, 10000)
@@ -183,7 +184,12 @@ func main() {
 					} else {
 						log.Println("fail download", link, p)
 					}
-					log.Print(len(proxies), len(links))
+					log.Println(len(proxies), len(links))
+
+					if *r == 1 {
+						log.Println("reuse", p)
+						proxies <- p
+					}
 					break
 				}
 			}
