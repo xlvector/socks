@@ -153,7 +153,7 @@ func main() {
 	ls := flag.String("l", "", "links")
 	folder := flag.String("d", "./", "folder")
 	n := flag.Int("n", 10, "n")
-	r := flag.Int("r", 0, "reuse ip")
+	r := flag.Int("r", 0, "remain ip")
 	flag.Parse()
 
 	proxies := make(chan string, 10000)
@@ -185,11 +185,7 @@ func main() {
 						log.Println("fail download", link, p)
 					}
 					log.Println(len(proxies), len(links))
-
-					if *r == 1 {
-						log.Println("reuse", p)
-						proxies <- p
-					}
+					proxies <- p
 					break
 				}
 			}
@@ -198,10 +194,7 @@ func main() {
 
 	tc := time.NewTicker(time.Second * 10)
 	for t := range tc.C {
-		if len(proxies) == 0 || len(links) == 0 {
-			break
-		}
-		if *r == 1 && len(proxies) < 100 {
+		if len(proxies) <= *r || len(links) == 0 {
 			break
 		}
 		log.Println(t, len(proxies), len(links))
