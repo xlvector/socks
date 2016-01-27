@@ -96,7 +96,7 @@ func download(ip, link string, block *Block) []byte {
 	p := NewProxy(ip)
 	c := getClient(p, block)
 	resp, err := c.Get(link)
-	if err != nil || resp == nil || resp.Body == nil {
+	if err != nil || resp == nil || resp.Body == nil || resp.StatusCode != http.StatusOK {
 		return nil
 	}
 	defer resp.Body.Close()
