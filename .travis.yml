@@ -18,5 +18,5 @@ deploy:
     file: deploy.tar.gz
     skip_cleanup: true
     on:
-        repo: qusujr/authcrawler
+        repo: xlvector/socks
         tags: true
