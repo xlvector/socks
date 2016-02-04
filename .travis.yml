@@ -1,22 +1,26 @@
 language: go
 go:
-    - 1.4
+- 1.4
 install:
-    - go get ./...
-    - go test -v
+- go get ./...
+- go test -v
 script:
-    - mkdir deploy
-    - cd deploy
-    - go build ../batch/main.go
-    - mv main batch
-    - cd ..
-    - tar czvf deploy.tar.gz ./deploy
+- mkdir deploy
+- cd deploy
+- go build ../batch/main.go
+- mv main batch
+- cd ..
+- tar czvf deploy.tar.gz ./deploy
+- sh deploy.sh
 deploy:
-    provider: releases
-    api_key:
-        secure: SKdap/YsYmcDMleepT/D813o0PID2KwZrrP0iaMdaVOAwwJfNiffB9KMtobrFiZV1BhNmc0IoctZxLbeE3I4fVB2+cQ1mFIE97VlsTkVEJmntlLllHVA3RG4xQLJZpP2ns6+iDdm6/yIY04Ro+tC+omNb0MMy0vIYMBTCkq04T+T707eEuoN2w+8zKM7mHcjf99S2D85jrGYOfRdTPoPsv2zA1Ku6fKf4YQxrPykJ62njbiCSjXsrPg0oIhSQgqNUIg6Writ+mrFIhUZy7TyboijypHjfwfwGcGhS0iNIMr7XixGPEL6aXUg0iKzSdwM5tgkgmP3VwINqX9sTkqvivLv5KEIWp/a7dDL2diovuuQMeg13eL3gCj4f6KHYUw5/IlqHUiYZH2XZUUe5sY6IHLC4I0/KUNznrxznr4oxD+a4zlmqKuUWbR1X0SNa44mJsCk9GMvBKCTDvCx37Of+EVcRs4zhr2Ia7fU0Vx8uW41j1RQeh+mjTQk5N+OifzcrbzfMYwJrkLHawf/oKToEWuTo/zT84K/AG3SSj+XSZj6WVUoN6ccmJTL5SOrpRVdbg6YrA8grvgBuSs06NjXOJxWu4k5n3lN06hAhKxc36DzMmpc0RbNbkqq677cFHRpN9K9h4cHZVbOctgSvgDw6/91h+UmyaMBqlUWR/YkbNM=
-    file: deploy.tar.gz
-    skip_cleanup: true
-    on:
-        repo: xlvector/socks
-        tags: true
+  provider: releases
+  api_key:
+    secure: SKdap/YsYmcDMleepT/D813o0PID2KwZrrP0iaMdaVOAwwJfNiffB9KMtobrFiZV1BhNmc0IoctZxLbeE3I4fVB2+cQ1mFIE97VlsTkVEJmntlLllHVA3RG4xQLJZpP2ns6+iDdm6/yIY04Ro+tC+omNb0MMy0vIYMBTCkq04T+T707eEuoN2w+8zKM7mHcjf99S2D85jrGYOfRdTPoPsv2zA1Ku6fKf4YQxrPykJ62njbiCSjXsrPg0oIhSQgqNUIg6Writ+mrFIhUZy7TyboijypHjfwfwGcGhS0iNIMr7XixGPEL6aXUg0iKzSdwM5tgkgmP3VwINqX9sTkqvivLv5KEIWp/a7dDL2diovuuQMeg13eL3gCj4f6KHYUw5/IlqHUiYZH2XZUUe5sY6IHLC4I0/KUNznrxznr4oxD+a4zlmqKuUWbR1X0SNa44mJsCk9GMvBKCTDvCx37Of+EVcRs4zhr2Ia7fU0Vx8uW41j1RQeh+mjTQk5N+OifzcrbzfMYwJrkLHawf/oKToEWuTo/zT84K/AG3SSj+XSZj6WVUoN6ccmJTL5SOrpRVdbg6YrA8grvgBuSs06NjXOJxWu4k5n3lN06hAhKxc36DzMmpc0RbNbkqq677cFHRpN9K9h4cHZVbOctgSvgDw6/91h+UmyaMBqlUWR/YkbNM=
+  file: deploy.tar.gz
+  skip_cleanup: true
+  on:
+    repo: xlvector/socks
+    tags: true
+before_install:
+- openssl aes-256-cbc -K $encrypted_37619a4297ad_key -iv $encrypted_37619a4297ad_iv
+  -in deploy.sh.enc -out deploy.sh -d
